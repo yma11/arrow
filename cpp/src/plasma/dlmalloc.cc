@@ -88,10 +88,6 @@ int create_buffer(int64_t size) {
     return -1;
   }
   // Immediately unlink the file so we do not leave traces in the system.
-  if (unlink(&file_name[0]) != 0) {
-    ARROW_LOG(FATAL) << "failed to unlink file " << &file_name[0];
-    return -1;
-  }
   if (!plasma_config->hugepages_enabled) {
     // Increase the size of the file to the desired size. This seems not to be
     // needed for files that are backed by the huge page fs, see also
