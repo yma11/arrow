@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.arrow.plasma.exceptions.DuplicateObjectException;
+import org.apache.arrow.plasma.exceptions.PlasmaClientException;
 import org.apache.arrow.plasma.exceptions.PlasmaOutOfMemoryException;
 
 /**
@@ -35,13 +36,27 @@ public class PlasmaClient implements ObjectStoreLink {
 
   private final long conn;
 
+  private PlasmaClientException plasmaClientException = null;
+
   protected void finalize() {
-    PlasmaClientJNI.disconnect(this.conn);
+    if (plasmaClientException == null) {
+      PlasmaClientJNI.disconnect(this.conn);
+    }
   }
 
-  // use plasma client to initialize the underlying jni system as well via config and config-overwrites
+  /**
+   * use plasma client to initialize the underlying jni system as well via config and config-overwrites.
+   * @param storeSocketName Socket path of Plasma server
+   * @param managerSocketName managerSocketName
+   * @param releaseDelay releaseDelay
+   */
   public PlasmaClient(String storeSocketName, String managerSocketName, int releaseDelay) {
-    this.conn = PlasmaClientJNI.connect(storeSocketName, managerSocketName, releaseDelay);
+    try {
+      this.conn = PlasmaClientJNI.connect(storeSocketName, managerSocketName, releaseDelay);
+    } catch (PlasmaClientException e) {
+      plasmaClientException = e;
+      throw e;
+    }
   }
 
   // interface methods --------------------
