@@ -36,10 +36,10 @@ public class PlasmaClient implements ObjectStoreLink {
 
   private final long conn;
 
-  private PlasmaClientException plasmaClientException = null;
+  private boolean hasConnectException = false;
 
   protected void finalize() {
-    if (plasmaClientException == null) {
+    if (!hasConnectException) {
       PlasmaClientJNI.disconnect(this.conn);
     }
   }
@@ -54,7 +54,7 @@ public class PlasmaClient implements ObjectStoreLink {
     try {
       this.conn = PlasmaClientJNI.connect(storeSocketName, managerSocketName, releaseDelay);
     } catch (PlasmaClientException e) {
-      plasmaClientException = e;
+      hasConnectException = true;
       throw e;
     }
   }
